@@ -38,8 +38,12 @@ class TindeqTests:
         self.xnew = []
         self.ynew = []
         self.active = False
-        self.total_reps = 24
-        self.duration = 10 * self.total_reps
+        # self.total_reps = 24
+        self.total_reps = 2
+        self.cft_go_duration = 7
+        self.cft_duration = 10 * self.total_reps
+        self.max_duration = 20
+        self.rfd_duration = 10
         self.state = IdleState
         self.statex = TimerState.IdleStatex
         self.test = Test.MaxLeft
@@ -79,39 +83,35 @@ class TindeqTests:
         '''
         Critical Force Testing Layout
         '''
-        self.cft_layout = CftLayout(7)
-        self.timer_cft = CountdownTimer(1, 7, self.cft_layout)
+        self.cft_layout = CftLayout(self.total_reps)
+
+        "Sets the go period to 7 secs"
+        self.timer_cft = CountdownTimer(self.total_reps, self.cft_go_duration, self.cft_layout)
 
         self.cft_fig = self.cft_layout.fig
-
         self.cft_fig.line(x="x", y="y", source=self.cft_source)
 
-        self.cft_layout.fig = 90
-        self.cft_layout.set_x_range(80)
-        # self.cft_fig.x_range = Range1d(0, 80)
         
-        def cft_on_slide(attr, old, new):
-            print(attr, old, new)
-            self.cft_layout.reps = new
-            self.cft_layout.set_x_range(new*10)
+        # def cft_on_slide(attr, old, new):
+        #     print(attr, old, new)
+        #     self.cft_layout.reps = new
 
-        self.cft_slider = self.cft_layout.reps_slider
-        self.cft_slider.on_change('value', cft_on_slide)
+        # self.cft_slider = self.cft_layout.reps_slider
+        # self.cft_slider.on_change('value', cft_on_slide)
 
         def cft_onclick():
             self.test = Test.Cft
-            self.total_reps = self.cft_layout.reps_slider.value
-            print("clicked" +str(self.total_reps))
-            self.cft_layout.set_x_range(100)
-            self.cft_fig.x_range = Range1d(0, 180)
+            # self.total_reps = self.cft_layout.reps_slider.value
+            print("clicked " +str(self.total_reps))
+            # self.cft_layout.set_x_range(100)
+            # self.cft_fig.x_range = Range1d(0, 180)
 
-            self.duration = self.total_reps * 10
+            # self.duration = self.total_reps * 10
             io_loop = tornado.ioloop.IOLoop.current()
             io_loop.add_callback(start_test_cft, self, self.timer_cft, self.total_reps)
 
         self.cft_btn = self.cft_layout.btn
         self.cft_btn.on_click(cft_onclick)
-
 
         cft_column = self.cft_layout.column
 
@@ -129,7 +129,7 @@ class TindeqTests:
             def sctn():
                 self.rfdtest_left = False
 
-            s = threading.Timer(self.duration, sctn)
+            s = threading.Timer(self.rfd_duration, sctn)
             s.start()
             io_loop = tornado.ioloop.IOLoop.current()
             io_loop.add_callback(start_test_max, self, self.timer_max)
@@ -143,10 +143,10 @@ class TindeqTests:
 
             def sctn():
                 self.rfdtest_right = False
-                s = threading.Timer(self.duration, sctn)
-                s.start()
-                io_loop = tornado.ioloop.IOLoop.current()
-                io_loop.add_callback(start_test_max, self, self.timer_max)
+            s = threading.Timer(self.rfd_duration, sctn)
+            s.start()
+            io_loop = tornado.ioloop.IOLoop.current()
+            io_loop.add_callback(start_test_max, self, self.timer_max)
 
         self.rfd_btn_left = self.rfd_layout.btn_left
         self.rfd_btn_left.on_click(rfd_onclick_left)
@@ -175,7 +175,7 @@ class TindeqTests:
             def sctn():
                 self.max_layoutest_left = False
 
-            s = threading.Timer(self.duration, sctn)
+            s = threading.Timer(self.max_duration, sctn)
             s.start()
             io_loop = tornado.ioloop.IOLoop.current()
             io_loop.add_callback(start_test_max, self, self.timer_max)
@@ -189,10 +189,11 @@ class TindeqTests:
 
             def sctn():
                 self.max_layoutest_right = False
-                s = threading.Timer(self.duration, sctn)
-                s.start()
-                io_loop = tornado.ioloop.IOLoop.current()
-                io_loop.add_callback(start_test_max, self, self.timer_max)
+
+            s = threading.Timer(self.max_duration, sctn)
+            s.start()
+            io_loop = tornado.ioloop.IOLoop.current()
+            io_loop.add_callback(start_test_max, self, self.timer_max)
 
         self.max_btn_left = self.max_layout.btn_left
         self.max_btn_left.on_click(max_onclick_left)
@@ -277,14 +278,12 @@ class TindeqTests:
                 self.rfd_btn_right.button_type = "success"     
             if self.test == Test.Cft:                    
                 self.cft_reps = self.total_reps
-                # self.state.update(self)
                 self.timer_cft.update(self, self.timer_cft, self.cft_layout)
                 self.cft_source.stream({"x": self.xnew, "y": self.ynew})
             elif self.test == Test.MaxLeft:
                 self.timer_max.update(self, self.timer_max, self.max_layout)
                 self.max_source.stream({"x": self.xnew, "y": self.ynew})
 
-            # nlaps = self.duration // 10
             self.reset()
 
 

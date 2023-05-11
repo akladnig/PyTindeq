@@ -82,6 +82,7 @@ class CountdownTimer:
 
     @staticmethod
     def end(self):
+        print(self.statex, self.reps, TestStatus.complete)
         self.time = time.time()
 
         if self.statex == TimerState.IdleStatex:
@@ -100,11 +101,10 @@ class CountdownTimer:
             if TestStatus.complete:
                 self.statex = TimerState.RestStatex
             else:
-                if self.reps == 1:
-                    self.reps = 0
-                    TestStatus.complete = True
                 self.time = time.time()
                 self.statex = TimerState.GoStatex
                 self.reps -= 1
+                if self.reps <= 0:
+                    TestStatus.complete = True
         else:
             pass

@@ -58,10 +58,6 @@ class Layout:
         self.row = Row(widgets, self._fig_column)
         column = Column(self.title, self.row)
 
-    def set_x_range(self, duration):
-        print("set x ranges: " +str(duration))
-        self._fig.x_range = Range1d(0, duration)
-
     @property 
     def countdown_timer(self):
         return self._countdown_timer
@@ -80,10 +76,10 @@ class Layout:
     def fig(self):
         return self._fig
     
-    @fig.setter
-    def fig(self, duration):
-        print("fig.setter")
-        self._fig.x_range = duration
+    # @fig.setter
+    # def fig(self, duration):
+    #     print("fig.setter")
+    #     self._fig.x_range = duration
      
     @property 
     def duration(self):

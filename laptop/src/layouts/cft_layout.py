@@ -4,16 +4,18 @@ from bokeh.layouts import Row, Column
 from src.layouts.layout import Layout
 
 class CftLayout(Layout):
-    def __init__(self, duration, title="Critical Force Test"):
+    def __init__(self, total_reps, title="Critical Force Test"):
+        duration = total_reps*10
         Layout.__init__(self, title, duration)
 
         self._btn_start = Button(label="Waiting for Progressor...")
         self._btn_start.button_type = "danger"
 
-        self._reps_slider = Slider(start=2, end=30, value=24, step=1, title="Reps")
-
+        # self._reps_slider = Slider(start=2, end=30, value=24, step=1, title="Reps")
+        self._total_reps = total_reps
         self._reps = Div(
-            text=f"Rep {0}/{self._reps_slider.value}",
+            # text=f"Rep {0}/{self._reps_slider.value}",
+            text=f"Rep {0}/{self._total_reps}",
             styles={"font-size": "400%", "color": "black", "text-align": "center"},
         )
 
@@ -36,7 +38,7 @@ class CftLayout(Layout):
         )
 
         self.widgets = Column(
-            self._reps_slider,
+            # self._reps_slider,
             self._btn_start,
             self._reps,
             self.countdown_timer,
@@ -49,13 +51,13 @@ class CftLayout(Layout):
     def btn(self):
         return self._btn_start
 
-    @property
-    def reps_slider(self):
-        return self._reps_slider
+    # @property
+    # def reps_slider(self):
+    #     return self._reps_slider
     
-    @reps_slider.setter
-    def reps_slider(self, reps):
-        self._reps_slider.value = reps
+    # @reps_slider.setter
+    # def reps_slider(self, reps):
+    #     self._reps_slider.value = reps
     
     @property
     def reps(self):
@@ -63,6 +65,6 @@ class CftLayout(Layout):
     
     @reps.setter
     def reps(self, rep):
-        self._reps.text = f"Rep {1 + self._reps_slider.value - rep}/{self._reps_slider.value}"
+        self._reps.text = f"Rep {1 + self._total_reps - rep}/{self._total_reps}"
 
     

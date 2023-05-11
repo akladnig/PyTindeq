@@ -4,8 +4,6 @@ from src.analysis import Test, TestStatus
 
 async def start_test_max(cft, maxt):
     try:
-        # maxt.reps = 1
-        # maxt.end(maxt)
         cft.timer_max.reps = 1
         cft.timer_max.end(cft.timer_max)
         print("start Countdown " +str(cft.timer_max.go_duration))
