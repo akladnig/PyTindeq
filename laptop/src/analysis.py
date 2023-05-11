@@ -1,6 +1,17 @@
 
 import numpy as np
+from enum import Enum
 
+class Test(Enum):
+    MaxLeft = 1
+    MaxRight = 2
+    Cft = 3
+    RfdLeft = 4
+    RfdRight = 5
+
+class TestStatus:
+    active = False
+    complete = False
 
 def sigma_clipped_stats(data):
     mask = np.ones(data.shape).astype('bool')

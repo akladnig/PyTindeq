@@ -6,9 +6,6 @@ import numpy as np
 
 from bleak import BleakClient, BleakScanner
 
-# from bleak import _logger as logger
-
-
 class TindeqProgressor(object):
     response_codes = {"cmd_resp": 0, "weight_measure": 1, "low_pwr": 4}
     cmds = dict(
@@ -98,18 +95,22 @@ class TindeqProgressor(object):
 
     async def connect(self):
         print("Searching for progressor...")
-        scanner = BleakScanner()
-        devices = await scanner.discover(timeout=200.0)
         TARGET_NAME = "Progressor"
         address = None
-        for d in devices:
-            if d.name[: len(TARGET_NAME)] == TARGET_NAME:
-                address = d.address
-                print('Found "{0}" with address {1}'.format(d.name, d.address))
-                break
+        while address is None:
+            devices = await BleakScanner.discover()
 
-        if address is None:
-            raise RuntimeError("cannot find tindeq")
+            for d in devices:
+                if len(str(d.name))>=len(TARGET_NAME):
+                    if d.name[:len(TARGET_NAME)] == TARGET_NAME:
+                        address = d.address
+                        print(
+                            "Found \"{0}\" with address {1}".format(d.name, d.address)
+                        )
+                        break
+
+            if address is None:
+                print('cannot find tindeq')
 
         self.client = BleakClient(address)
         await self.client.connect()
