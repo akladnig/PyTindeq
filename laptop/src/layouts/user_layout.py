@@ -14,13 +14,13 @@ class UserLayout:
                 "width": "100%",
             },
         )
-        grip_types = ["Half Crimp", "4 Finger Open", "3 Finger Drag"]
-        name = TextInput(
+        _grip_types = ["Half Crimp", "4 Finger Open", "3 Finger Drag"]
+        _name = TextInput(
             title="Name",
             value="",
             styles={"font-size": "150%", "color": "black", "text-align": "left"},
         )
-        weight = Spinner(
+        self._weight = Spinner(
             title="Weight",
             low=50,
             high=120,
@@ -29,24 +29,28 @@ class UserLayout:
             width=80,
             styles={"font-size": "150%", "color": "black", "text-align": "left"},
         )
-        email = TextInput(
+        _email = TextInput(
             title="Email",
             value="",
             styles={"font-size": "150%", "color": "black", "text-align": "left"},
         )
-        grip_type = Select(
+        _grip_type = Select(
             title="Grip Type",
             value="Half Crimp",
-            options=grip_types,
+            options=_grip_types,
             styles={"font-size": "150%", "color": "black", "text-align": "left"},
         )
-        notes = TextAreaInput(
+        _notes = TextAreaInput(
             title="Notes",
             rows=6,
             styles={"font-size": "150%", "color": "black", "text-align": "left"},
         )
         title_row = Row(title)
-        column_1 = Column(name, weight, email, margin=(0, 100, 0, 50))
-        column_2 = Column(grip_type, notes)
+        column_1 = Column(_name, self._weight, _email, margin=(0, 100, 0, 50))
+        column_2 = Column(_grip_type, _notes)
         user_row = Row(column_1, column_2)
         self.column = Column(title_row, user_row)
+
+    @property
+    def weight(self):
+        return self._weight.value

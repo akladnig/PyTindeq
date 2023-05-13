@@ -45,6 +45,7 @@ class Layout:
             x_axis_label="Seconds",
             y_axis_label="kg",
         )
+        
         """
         Draws a vertical line to force the plot to show
         """
@@ -74,11 +75,6 @@ class Layout:
     @property
     def fig(self):
         return self._fig
-
-    # @fig.setter
-    # def fig(self, duration):
-    #     print("fig.setter")
-    #     self._fig.x_range = duration
 
     @property
     def duration(self):

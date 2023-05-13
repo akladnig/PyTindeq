@@ -1,20 +1,23 @@
-from bokeh.models import Button, Div, Slider, Range1d
+import numpy as np
+
+from bokeh.models import Button, Div, Whisker, Band
 from bokeh.layouts import Row, Column
+from bokeh.plotting import ColumnDataSource
 
 from src.layouts.layout import Layout
 
 class CftLayout(Layout):
     def __init__(self, total_reps, title="Critical Force Test"):
-        duration = total_reps*10
+        duration = total_reps*10+5
         Layout.__init__(self, title, duration)
 
         self._btn_start = Button(label="Waiting for Progressor...")
         self._btn_start.button_type = "danger"
+        self._btn_start.disabled = True
 
-        # self._reps_slider = Slider(start=2, end=30, value=24, step=1, title="Reps")
+
         self._total_reps = total_reps
         self._reps = Div(
-            # text=f"Rep {0}/{self._reps_slider.value}",
             text=f"Rep {0}/{self._total_reps}",
             styles={"font-size": "400%", "color": "black", "text-align": "center"},
         )
@@ -38,7 +41,6 @@ class CftLayout(Layout):
         )
 
         self.widgets = Column(
-            # self._reps_slider,
             self._btn_start,
             self._reps,
             self.countdown_timer,
@@ -51,14 +53,6 @@ class CftLayout(Layout):
     def btn(self):
         return self._btn_start
 
-    # @property
-    # def reps_slider(self):
-    #     return self._reps_slider
-    
-    # @reps_slider.setter
-    # def reps_slider(self, reps):
-    #     self._reps_slider.value = reps
-    
     @property
     def reps(self):
         return self._reps
@@ -74,5 +68,48 @@ class CftLayout(Layout):
     @results.setter
     def results(self, text):
         self._results.text = text
+
+    def update_results(self, results):
+        (
+            tmeans,
+            fmeans,
+            e_fmeans,
+            msg,
+            critical_load,
+            load_asymptote,
+            predicted_force,
+        ) = results
+        self._results.text = "<p><b>Results</b></p>" + msg
+
+        fill_src = ColumnDataSource(
+            dict(
+                x=tmeans,
+                upper=predicted_force,
+                lower=load_asymptote * np.ones_like(tmeans),
+            )
+        )
+        self._fig.add_layout(
+            Band(
+                base="x",
+                lower="lower",
+                upper="upper",
+                source=fill_src,
+                fill_alpha=0.7,
+            )
+        )
+        self._fig.circle(tmeans, fmeans, color="red", size=5, line_alpha=0)
+
+        esource = ColumnDataSource(
+            dict(x=tmeans, upper=fmeans + e_fmeans, lower=fmeans - e_fmeans)
+        )
+        self._fig.add_layout(
+            Whisker(
+                source=esource,
+                base="x",
+                upper="upper",
+                lower="lower",
+                level="overlay",
+            )
+        )
 
     

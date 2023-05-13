@@ -1,8 +1,5 @@
 import time
 
-from src.layouts.layout import Layout
-from src.analysis import Test, TestStatus
-
 from enum import Enum
 
 from bokeh.models import Div
