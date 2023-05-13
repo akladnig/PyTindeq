@@ -3,9 +3,10 @@ from enum import Enum
 
 
 class TestStatus:
-    def __init__(self):
+    def __init__(self, name):
         self._active = False
         self._complete = False
+        self._name = name
 
     @property
     def active(self):
@@ -23,14 +24,17 @@ class TestStatus:
     def complete(self, state):
         self._complete = state
 
-
+    @property
+    def name(self):
+        return self._name
+    
 class Test:
     TestingStarted = False
-    MaxLeft = TestStatus()
-    MaxRight = TestStatus()
-    Cft = TestStatus()
-    RfdLeft = TestStatus()
-    RfdRight = TestStatus()
+    MaxLeft = TestStatus("Max Left")
+    MaxRight = TestStatus("Max Right")
+    Cft = TestStatus("CFT")
+    RfdLeft = TestStatus("RFD Left")
+    RfdRight = TestStatus("RFD Right")
 
     def testing_complete(self):
         testing_complete = (

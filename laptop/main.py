@@ -1,22 +1,12 @@
 from src.tindeq import TindeqProgressor
-from src.analysis import analyse_data, Test, TestStatus
+from src.analysis import analyse_data, Test
 from src.timers import CountdownTimer, TimerState
-# from src.cft_timers import IdleState
 
-# from src.cft import cft
 from src.layouts.cft_layout import CftLayout
-from src.cft_test import start_test_cft
-
-from src.layouts.max_layout import MaxLayout
-from src.max_test import start_test_max
-
-from src.layouts.rfd_layout import RfdLayout
-from src.rfd_test import start_test_rfd
-
-# from src.controls.max_controls import max_onclick_left, max_onclick_right
-
-from src.layouts.rfd_layout import RfdLayout
+from src.layouts.test_layout import TestLayout
 from src.layouts.user_layout import UserLayout
+
+from src.start_test import start_test
 
 from src.playsounds import sound_thread
 
@@ -28,8 +18,8 @@ import threading
 from bokeh.server.server import Server
 from bokeh.application import Application
 from bokeh.application.handlers.function import FunctionHandler
-from bokeh.plotting import figure, ColumnDataSource
-from bokeh.layouts import row, column
+from bokeh.plotting import ColumnDataSource
+from bokeh.layouts import row, Column
 from bokeh.models import Button, Slider, Div, Band, Whisker, Range1d
 
 
@@ -50,7 +40,7 @@ class TindeqTests:
         self.max_rest_duration = 0
         self.rfd_rest_duration = 0
         # self.state = IdleState
-        self.statex = TimerState.IdleStatex
+        self.state = TimerState.IdleState
         self.st = sound_thread()
         self.analysed = False
         self.tindeq = None
@@ -111,7 +101,7 @@ class TindeqTests:
             print("clicked " + str(self.total_reps))
             io_loop = tornado.ioloop.IOLoop.current()
             io_loop.add_callback(
-                start_test_cft, self, self.timer_cft, self.total_reps, Test.Cft
+                start_test, self, self.timer_cft, Test.Cft
             )
 
         self.cft_btn = self.cft_layout.btn
@@ -122,7 +112,7 @@ class TindeqTests:
         """
         Rate of Force Development Testing
         """
-        self.rfd_layout = RfdLayout(self.rfd_go_duration)
+        self.rfd_layout = TestLayout(self.rfd_go_duration, Test.RfdLeft)
         self.timer_rfd = CountdownTimer(
             1, self.rfd_go_duration, self.rfd_rest_duration, self.rfd_layout
         )
@@ -150,7 +140,7 @@ class TindeqTests:
             s = threading.Timer(self.rfd_go_duration, sctn)
             s.start()
             io_loop = tornado.ioloop.IOLoop.current()
-            io_loop.add_callback(start_test_rfd, self, self.timer_rfd, Test.RfdLeft)
+            io_loop.add_callback(start_test, self, self.timer_rfd, Test.RfdLeft)
 
         def rfd_onclick_right():
             Test.TestingStarted = True
@@ -174,7 +164,7 @@ class TindeqTests:
             s = threading.Timer(self.rfd_go_duration, sctn)
             s.start()
             io_loop = tornado.ioloop.IOLoop.current()
-            io_loop.add_callback(start_test_rfd, self, self.timer_rfd, Test.RfdRight)
+            io_loop.add_callback(start_test, self, self.timer_rfd, Test.RfdRight)
 
         self.rfd_btn_left = self.rfd_layout.btn_left
         self.rfd_btn_left.on_click(rfd_onclick_left)
@@ -186,7 +176,7 @@ class TindeqTests:
         """
         Max Strength Testing
         """
-        self.max_layout = MaxLayout(self.max_go_duration)
+        self.max_layout = TestLayout(self.max_go_duration, Test.MaxLeft)
         self.timer_max = CountdownTimer(
             1, self.max_go_duration, self.max_rest_duration, self.max_layout
         )
@@ -204,16 +194,16 @@ class TindeqTests:
                 line_color="blue",
             )
             self.max_source_l.data = dict(x=[], y=[])
-            self.max_layoutest_left = True
-            self.max_layoutest_right = False
+            # self.max_layoutest_left = True
+            # self.max_layoutest_right = False
 
-            def sctn():
-                self.max_layoutest_left = False
+            # def sctn():
+            #     self.max_layoutest_left = False
 
-            s = threading.Timer(self.max_go_duration, sctn)
-            s.start()
+            # s = threading.Timer(self.max_go_duration, sctn)
+            # s.start()
             io_loop = tornado.ioloop.IOLoop.current()
-            io_loop.add_callback(start_test_max, self, self.timer_max, Test.MaxLeft)
+            io_loop.add_callback(start_test, self, self.timer_max, Test.MaxLeft)
 
         def max_onclick_right():
             Test.TestingStarted = True
@@ -226,18 +216,18 @@ class TindeqTests:
                 line_color="green",
             )
             self.max_source_r.data = dict(x=[], y=[])
-            self.max_layoutest_right = True
-            self.max_layoutest_left = False
+            # self.max_layoutest_right = True
+            # self.max_layoutest_left = False
             # self.btn_right.disabled=True
             # self.btn_left.disabled=True
 
-            def sctn():
-                self.max_layoutest_right = False
+            # def sctn():
+            #     self.max_layoutest_right = False
 
-            s = threading.Timer(self.max_go_duration, sctn)
-            s.start()
+            # s = threading.Timer(self.max_go_duration, sctn)
+            # s.start()
             io_loop = tornado.ioloop.IOLoop.current()
-            io_loop.add_callback(start_test_max, self, self.timer_max, Test.MaxRight)
+            io_loop.add_callback(start_test, self, self.timer_max, Test.MaxRight)
 
         self.max_btn_left = self.max_layout.btn_left
         self.max_btn_left.on_click(max_onclick_left)
@@ -246,7 +236,7 @@ class TindeqTests:
 
         max_column = self.max_layout.column
 
-        doc.add_root(column(user_column, max_column, cft_column, rfd_column))
+        doc.add_root(Column(user_column, max_column, cft_column, rfd_column))
         doc.add_periodic_callback(self.update, 50)
 
     def update(self):

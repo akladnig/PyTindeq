@@ -9,16 +9,16 @@ from bokeh.models import Div
 
 
 class TimerState(Enum):
-    IdleStatex = 1
-    CountDownStatex = 2
-    GoStatex = 3
-    RestStatex = 4
+    IdleState = 1
+    CountDownState = 2
+    GoState = 3
+    RestState = 4
 
 
 class CountdownTimer:
     countdown_duration = 5
     def __init__(self, reps, go_duration, rest_duration, layout):
-        self.statex = TimerState.IdleStatex
+        self.state = TimerState.IdleState
         self.go_duration = go_duration
         self.rest_duration = rest_duration
         self.idle_duration = 5
@@ -31,20 +31,20 @@ class CountdownTimer:
 
     @staticmethod
     def update(parent, self, layout, test):
-        if self.statex == TimerState.IdleStatex:
+        if self.state == TimerState.IdleState:
             self.duration = self.idle_duration
             self.colour = "orange"
-        elif self.statex == TimerState.CountDownStatex:
+        elif self.state == TimerState.CountDownState:
             self.duration = self.countdown_duration
             self.colour = "orange"
-        elif self.statex == TimerState.GoStatex:
+        elif self.state == TimerState.GoState:
             self.duration = self.go_duration
             self.colour = "green"
-        elif self.statex == TimerState.RestStatex:
+        elif self.state == TimerState.RestState:
             self.duration = self.rest_duration
             self.colour = "red"
 
-        if self.statex != TimerState.IdleStatex:
+        if self.state != TimerState.IdleState:
             elapsed = time.time() - self.time
             remain = self.duration - elapsed
             ms = int(10 * (remain - int(remain)))
@@ -60,47 +60,47 @@ class CountdownTimer:
         if elapsed > self.duration:
             CountdownTimer.end(self, test)
 
-        if self.statex == TimerState.CountDownStatex:
+        if self.state == TimerState.CountDownState:
             if (remain <= 3.5) & (parent.st.running == False):
                 parent.st.start("laptop/static/countdown.mp3", 3.5)
-        elif self.statex == TimerState.GoStatex:
+        elif self.state == TimerState.GoState:
             if (remain <= 1.1) & (remain > 0.5) & (parent.st.running == False):
                 parent.st.start("laptop/static/end.wav", 1.1)
-        elif self.statex == TimerState.RestStatex:
+        elif self.state == TimerState.RestState:
             if (remain <= 3.5) & (parent.st.running == False):
                 parent.st.start("laptop/static/countdown.mp3", 3.5)
 
     @staticmethod
     def end(self, test):
-        # print(self.statex, self.reps, test.complete)
+        # print(self.state, self.reps, test.complete)
         if test.complete:
                 pass
         
         self.time = time.time()
 
-        if self.statex == TimerState.IdleStatex:
+        if self.state == TimerState.IdleState:
             self.time = time.time()
-            self.statex = TimerState.CountDownStatex
+            self.state = TimerState.CountDownState
 
-        elif self.statex == TimerState.CountDownStatex:
+        elif self.state == TimerState.CountDownState:
             self.time = time.time()
-            self.statex = TimerState.GoStatex
+            self.state = TimerState.GoState
 
-        elif self.statex == TimerState.GoStatex:
+        elif self.state == TimerState.GoState:
             self.time = time.time()
             if self.rest_duration == 0:
-                self.statex = TimerState.IdleStatex
+                self.state = TimerState.IdleState
                 test.complete = True
 
             else:
-                self.statex = TimerState.RestStatex
+                self.state = TimerState.RestState
 
-        elif self.statex == TimerState.RestStatex:
+        elif self.state == TimerState.RestState:
             if test.complete:
-                self.statex = TimerState.RestStatex
+                self.state = TimerState.RestState
             else:
                 self.time = time.time()
-                self.statex = TimerState.GoStatex
+                self.state = TimerState.GoState
                 self.reps -= 1
                 if self.reps <= 0:
                     test.complete = True
