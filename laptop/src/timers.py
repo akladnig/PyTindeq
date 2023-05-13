@@ -16,31 +16,21 @@ class TimerState(Enum):
 
 
 class CountdownTimer:
-    countdown_duration = 10
-    def __init__(self, reps, duration, layout):
+    countdown_duration = 5
+    def __init__(self, reps, go_duration, rest_duration, layout):
         self.statex = TimerState.IdleStatex
-        self.go_duration = duration
-        self.rest_duration = 3
-        self.idle_duration = 10
+        self.go_duration = go_duration
+        self.rest_duration = rest_duration
+        self.idle_duration = 5
 
         self.layout = layout
         self.reps = reps
-        self.duration = 10
+        self.duration = self.idle_duration
         self.time = time.time()
         self.layout.countdown_timer = (self.countdown_duration, 0, "orange")
 
-        # self.countdown_timer = Div(
-        #     text=f"{self.countdown_duration:02d}:{00:02d}",
-        #     styles={
-        #         "font-size": "800%",
-        #         "color": "white",
-        #         "background-color": "orange",
-        #         "text-align": "center",
-        #     },
-        # )
-
     @staticmethod
-    def update(parent, self, layout):
+    def update(parent, self, layout, test):
         if self.statex == TimerState.IdleStatex:
             self.duration = self.idle_duration
             self.colour = "orange"
@@ -68,7 +58,7 @@ class CountdownTimer:
         layout.countdown_timer = (secs, ms, self.colour)
 
         if elapsed > self.duration:
-            CountdownTimer.end(self)
+            CountdownTimer.end(self, test)
 
         if self.statex == TimerState.CountDownStatex:
             if (remain <= 3.5) & (parent.st.running == False):
@@ -81,8 +71,11 @@ class CountdownTimer:
                 parent.st.start("laptop/static/countdown.mp3", 3.5)
 
     @staticmethod
-    def end(self):
-        print(self.statex, self.reps, TestStatus.complete)
+    def end(self, test):
+        # print(self.statex, self.reps, test.complete)
+        if test.complete:
+                pass
+        
         self.time = time.time()
 
         if self.statex == TimerState.IdleStatex:
@@ -95,16 +88,21 @@ class CountdownTimer:
 
         elif self.statex == TimerState.GoStatex:
             self.time = time.time()
-            self.statex = TimerState.RestStatex
+            if self.rest_duration == 0:
+                self.statex = TimerState.IdleStatex
+                test.complete = True
+
+            else:
+                self.statex = TimerState.RestStatex
 
         elif self.statex == TimerState.RestStatex:
-            if TestStatus.complete:
+            if test.complete:
                 self.statex = TimerState.RestStatex
             else:
                 self.time = time.time()
                 self.statex = TimerState.GoStatex
                 self.reps -= 1
                 if self.reps <= 0:
-                    TestStatus.complete = True
+                    test.complete = True
         else:
             pass

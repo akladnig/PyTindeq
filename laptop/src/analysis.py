@@ -1,29 +1,73 @@
-
 import numpy as np
 from enum import Enum
 
-class Test(Enum):
-    MaxLeft = 1
-    MaxRight = 2
-    Cft = 3
-    RfdLeft = 4
-    RfdRight = 5
 
 class TestStatus:
-    active = False
-    complete = False
+    def __init__(self):
+        self._active = False
+        self._complete = False
+
+    @property
+    def active(self):
+        return self._active
+
+    @active.setter
+    def active(self, state):
+        self._active = state
+
+    @property
+    def complete(self):
+        return self._complete
+
+    @complete.setter
+    def complete(self, state):
+        self._complete = state
+
+
+class Test:
+    TestingStarted = False
+    MaxLeft = TestStatus()
+    MaxRight = TestStatus()
+    Cft = TestStatus()
+    RfdLeft = TestStatus()
+    RfdRight = TestStatus()
+
+    def testing_complete(self):
+        testing_complete = (
+            Test.Cft.complete
+            and Test.MaxLeft.complete
+            and Test.MaxRight.complete
+            and Test.RfdLeft.complete
+            and Test.RfdRight.complete
+        )
+        return testing_complete
+
+    def testing_active(self):
+        testing_active = (
+            Test.Cft.active
+            or Test.MaxLeft.active
+            or Test.MaxRight.active
+            or Test.RfdLeft.active
+            or Test.RfdRight.active
+        )
+        return testing_active
+
 
 def sigma_clipped_stats(data):
-    mask = np.ones(data.shape).astype('bool')
+    mask = np.ones(data.shape).astype("bool")
     for i in range(5):
         mean = np.mean(data[mask])
-        mask = np.fabs(data-mean) < 4 * np.std(data[mask])
+        mask = np.fabs(data - mean) < 4 * np.std(data[mask])
     return data[mask].mean(), np.median(data[mask]), data[mask].std()
 
 
 def get_edges(f, trigger_level=3):
-    rising_edges = np.flatnonzero(np.logical_and(f[:-1] < trigger_level, f[1:] > trigger_level))
-    falling_edges = np.flatnonzero(np.logical_and(f[:-1] > trigger_level, f[1:] < trigger_level))
+    rising_edges = np.flatnonzero(
+        np.logical_and(f[:-1] < trigger_level, f[1:] > trigger_level)
+    )
+    falling_edges = np.flatnonzero(
+        np.logical_and(f[:-1] > trigger_level, f[1:] < trigger_level)
+    )
     # check limits
     if f[0] > trigger_level:
         rising_edges = np.insert(rising_edges, 0, 0)
@@ -35,21 +79,30 @@ def measure_mean_loads(t, f, trigger_level=3):
     Split the data into single work intervals, and calculate mean load in that interval
     """
     rising_edges, falling_edges = get_edges(f, trigger_level)
-    fmeans = []; durations = []; fmeds = []; tmeans = []; errs = []
+    fmeans = []
+    durations = []
+    fmeds = []
+    tmeans = []
+    errs = []
     for s, e in zip(rising_edges, falling_edges):
-        if e-s < 3.5:
+        if e - s < 3.5:
             continue
 
-        elapsed = t[e]-t[s]
+        elapsed = t[e] - t[s]
         time = t[s:e].mean()
         mean, med, std = sigma_clipped_stats(f[s:e])
         fmeans.append(mean)
         fmeds.append(med)
         durations.append(elapsed)
         tmeans.append(time)
-        errs.append(std / np.sqrt(e-s))
-    return (np.array(tmeans), np.array(durations), np.array(fmeans),
-            np.array(fmeds), np.array(errs))
+        errs.append(std / np.sqrt(e - s))
+    return (
+        np.array(tmeans),
+        np.array(durations),
+        np.array(fmeans),
+        np.array(fmeds),
+        np.array(errs),
+    )
 
 
 def analyse_data(t, f, load_time, rest_time, interactive=False):
@@ -59,20 +112,27 @@ def analyse_data(t, f, load_time, rest_time, interactive=False):
     e_load_asymptote = np.nanstd(fmeans[-5:-1]) / np.sum(np.isfinite(fmeans[-5:-1]))
 
     critical_load = load_asymptote * factor
-    e_critical_load = critical_load * (e_load_asymptote/load_asymptote)
+    e_critical_load = critical_load * (e_load_asymptote / load_asymptote)
 
-    used_in_each_interval = (fmeans - critical_load) * durations - critical_load * (load_time+rest_time - durations)
+    used_in_each_interval = (fmeans - critical_load) * durations - critical_load * (
+        load_time + rest_time - durations
+    )
     wprime_alt = np.sum(used_in_each_interval)
     remaining = wprime_alt - np.cumsum(used_in_each_interval)
+    print("Analyse Data ", used_in_each_interval, wprime_alt, remaining)
 
     # force constant
-    alpha = np.median((fmeans - load_asymptote)/remaining)
+    alpha = np.median((fmeans - load_asymptote) / remaining)
 
-    msg = '<p>peak load = {:.2f} +/- {:.2f} kg</p>'.format(fmeans[0], e_fmeans[0])
-    msg += '<p>critical load = {:.2f} +/- {:.2f} kg</p>'.format(critical_load, e_critical_load)
-    msg += '<p>asymptotic load = {:.2f} +/- {:.2f} kg</p>'.format(load_asymptote, e_load_asymptote)
+    msg = "<p>peak load = {:.2f} +/- {:.2f} kg</p>".format(fmeans[0], e_fmeans[0])
+    msg += "<p>critical load = {:.2f} +/- {:.2f} kg</p>".format(
+        critical_load, e_critical_load
+    )
+    msg += "<p>asymptotic load = {:.2f} +/- {:.2f} kg</p>".format(
+        load_asymptote, e_load_asymptote
+    )
     msg += "<p>W'' = {:.0f} J</p>".format(9.8 * wprime_alt)
-    msg += '<p>Anaerobic function score = {:.1f}</p>'.format(wprime_alt / critical_load)
+    msg += "<p>Anaerobic function score = {:.1f}</p>".format(wprime_alt / critical_load)
 
     predicted_force = load_asymptote + alpha * remaining
 

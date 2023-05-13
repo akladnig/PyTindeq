@@ -2,30 +2,27 @@ import asyncio
 from src.timers import CountdownTimer, TimerState
 from src.analysis import Test, TestStatus
 
-async def start_test_max(cft, maxt):
+async def start_test_max(cft, maxt, test):
     try:
         cft.timer_max.reps = 1
-        cft.timer_max.end(cft.timer_max)
-        print("start Countdown " +str(cft.timer_max.go_duration))
+        cft.timer_max.end(cft.timer_max, test)
 
         await asyncio.sleep(cft.timer_max.countdown_duration)
-        print("start logging")
-        TestStatus.active = True
-        print("start_test_max Active " +str(TestStatus.active))
-
+        test.active = True
         await cft.tindeq.start_logging_weight()
 
         print("Max Test starts!")
-        maxt.end(maxt)
+        maxt.end(maxt, test)
 
-        print(maxt.go_duration)
+        print("go_duration ", maxt.go_duration)
         await asyncio.sleep(maxt.go_duration)
         await cft.tindeq.stop_logging_weight()
-        print("Max Test done!")
 
-        TestStatus.complete = True
+        test.complete = True
+        print("Max Test done! ", Test.testing_complete(cft), Test.testing_active(cft))
+
         await asyncio.sleep(0.5)
-        maxt.state = TimerState.IdleStatex
+        cft.timer_max.statex = TimerState.IdleStatex
     except Exception as err:
         print(str(err))
     # finally:

@@ -67,4 +67,12 @@ class CftLayout(Layout):
     def reps(self, rep):
         self._reps.text = f"Rep {1 + self._total_reps - rep}/{self._total_reps}"
 
+    @property
+    def results(self):
+        return self._results
+    
+    @results.setter
+    def results(self, text):
+        self._results.text = text
+
     
