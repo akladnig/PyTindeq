@@ -3,7 +3,7 @@ from bokeh.layouts import Row, Column
 
 from src.layouts.layout import Layout
 from src.test import Test
-
+from src.templates.styles import Styles
 
 class TestLayout(Layout):
     def __init__(self, duration, name, source_left, source_right):
@@ -26,22 +26,22 @@ class TestLayout(Layout):
         if name == Test.MaxLeft or name == Test.MaxRight:
             self._div_lh = Div(
                 text="Left hand:  0.00 kg",
-                styles={"font-size": "200%", "color": "black", "text-align": "center"},
+                styles=Styles.heading2,
             )
 
             self._div_rh = Div(
                 text="Right hand: 0.00 kg",
-                styles={"font-size": "200%", "color": "black", "text-align": "center"},
+                styles=Styles.heading2,
             )
         elif name == Test.RfdLeft or name == Test.RfdRight:
             self._div_lh = Div(
                 text="Left hand: 0.00 kg/s",
-                styles={"font-size": "200%", "color": "black", "text-align": "center"},
+                styles=Styles.heading2,
             )
 
             self._div_rh = Div(
                 text="Right hand: 0.00 kg/s",
-                styles={"font-size": "200%", "color": "black", "text-align": "center"},
+                styles=Styles.heading2,
             )
         self._fig.line(
             legend_label="Left",

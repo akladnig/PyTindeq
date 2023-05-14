@@ -2,8 +2,7 @@ import time
 
 from enum import Enum
 
-from bokeh.models import Div
-
+from src.templates.styles import Styles
 
 class TimerState(Enum):
     IdleState = 1
@@ -14,6 +13,7 @@ class TimerState(Enum):
 
 class CountdownTimer:
     countdown_duration = 5
+
     def __init__(self, reps, go_duration, rest_duration, layout):
         self.state = TimerState.IdleState
         self.go_duration = go_duration
@@ -21,41 +21,41 @@ class CountdownTimer:
         self.idle_duration = 5
 
         self.layout = layout
-        self.reps = reps
+        self._reps = reps
         self.duration = self.idle_duration
         self.time = time.time()
-        self.layout.countdown_timer = (self.countdown_duration, 0, "orange")
+        self.layout.countdown_timer = (self.countdown_duration, 0, Styles.countdown_timer_idle)
 
     @staticmethod
     def update(parent, self, layout, test):
         if self.state == TimerState.IdleState:
             self.duration = self.idle_duration
-            self.colour = "orange"
+            self.style = Styles.countdown_timer_idle
         elif self.state == TimerState.CountDownState:
             self.duration = self.countdown_duration
-            self.colour = "orange"
+            self.style = Styles.countdown_timer_countdown
         elif self.state == TimerState.GoState:
             self.duration = self.go_duration
-            self.colour = "green"
+            self.style = Styles.countdown_timer_go
         elif self.state == TimerState.RestState:
             self.duration = self.rest_duration
-            self.colour = "red"
+            self.style = Styles.countdown_timer_rest
 
         if self.state != TimerState.IdleState:
             elapsed = time.time() - self.time
             remain = self.duration - elapsed
-            ms = int(10 * (remain - int(remain)))
+            ms = int(10 * (remain - int(remain))) * 10
             secs = int(remain)
         else:
             elapsed = 0
             remain = self.duration
             ms = 0
             secs = self.duration
-            
-        layout.countdown_timer = (secs, ms, self.colour)
+
+        layout.countdown_timer = (secs, ms, self.style)
 
         if elapsed > self.duration:
-            CountdownTimer.end(self, test)
+            CountdownTimer.end(layout, self, test)
 
         if self.state == TimerState.CountDownState:
             if (remain <= 3.5) & (parent.st.running == False):
@@ -64,15 +64,15 @@ class CountdownTimer:
             if (remain <= 1.1) & (remain > 0.5) & (parent.st.running == False):
                 parent.st.start("laptop/static/end.wav", 1.1)
         elif self.state == TimerState.RestState:
-            if (remain <= 3.5) & (parent.st.running == False):
+            if (remain <= 3.5) & (parent.st.running == False) & (self._reps > 1):
                 parent.st.start("laptop/static/countdown.mp3", 3.5)
 
     @staticmethod
-    def end(self, test):
-        # print(self.state, self.reps, test.complete)
+    def end(layout, self, test):
+        # print(self.state, layout.total_reps, self._reps, test.complete)
         if test.complete:
-                pass
-        
+            pass
+
         self.time = time.time()
 
         if self.state == TimerState.IdleState:
@@ -90,6 +90,8 @@ class CountdownTimer:
                 test.complete = True
 
             else:
+                # if self._reps == 1:
+                #     test.complete = True
                 self.state = TimerState.RestState
 
         elif self.state == TimerState.RestState:
@@ -98,8 +100,10 @@ class CountdownTimer:
             else:
                 self.time = time.time()
                 self.state = TimerState.GoState
-                self.reps -= 1
-                if self.reps <= 0:
+                self._reps -= 1
+                if self._reps <= 0:
                     test.complete = True
-        else:
-            pass
+
+    @property
+    def reps(self):
+        return self._reps

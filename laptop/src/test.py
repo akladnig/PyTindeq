@@ -1,5 +1,5 @@
 import asyncio
-from src.timers import CountdownTimer, TimerState
+from src.timers import TimerState
 
 
 class TestStatus:
@@ -38,14 +38,14 @@ class Test:
     RfdRight = TestStatus("RFD Right")
 
     def testing_complete(self):
-        # testing_complete = (
-        #     Test.Cft.complete
-        #     and Test.MaxLeft.complete
-        #     and Test.MaxRight.complete
-        #     and Test.RfdLeft.complete
-        #     and Test.RfdRight.complete
-        # )
-        testing_complete = Test.RfdRight.complete
+        testing_complete = (
+            Test.Cft.complete
+            and Test.MaxLeft.complete
+            and Test.MaxRight.complete
+            and Test.RfdLeft.complete
+            and Test.RfdRight.complete
+        )
+        # testing_complete = Test.RfdRight.complete
 
         return testing_complete
 
@@ -79,19 +79,22 @@ class TestResults:
     critical_load_percent = 0
 
 
-async def start_test(parent, test, test_status):
+async def start_test(parent, layout, test, test_status):
     try:
         total_duration = test.reps * (test.go_duration + test.rest_duration)
 
-        test.end(test, test_status)
+        test.end(layout, test, test_status)
 
         test_status.active = True
-        await asyncio.sleep(test.countdown_duration-1)
+        '''
+        A bit of a delay in case load is applied early
+        '''
+        await asyncio.sleep(test.countdown_duration-0.5)
         await parent.tindeq.start_logging_weight()
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.5)
 
         print(test_status.name, " Test starts!")
-        test.end(test, test_status)
+        test.end(layout, test, test_status)
 
         print(test_status.name, " duration ", total_duration)
         await asyncio.sleep(total_duration)

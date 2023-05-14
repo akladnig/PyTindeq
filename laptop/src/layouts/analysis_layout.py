@@ -2,39 +2,36 @@ from bokeh.models import Div
 from bokeh.layouts import Column
 
 from src.test import TestResults
+from src.templates.styles import Styles
 
 
 class AnalysisLayout:
     def __init__(self):
         title = Div(
             text="Testing Analysis",
-            styles={
-                "font-size": "300%",
-                "font_style": "bold",
-                "color": "Blue",
-                "text-align": "left",
-                "width": "100%",
-            },
+            styles=Styles.title,
         )
-
+        '''
+        Grading is based on the IRCRA scale
+        '''
         self.grades = {
-            1: "3",
+            1: "4",
             2: "6",
-            3: "8",
+            3: "7",
             4: "9",
             5: "10",
             6: "12",
             7: "13",
-            8: "14",
+            8: "15",
             9: "16",
-            10: "17",
-            11: "18",
-            12: "19",
+            10: "18",
+            11: "19-",
+            12: "19+",
             13: "20",
             14: "21",
-            15: "22",
-            16: "23",
-            17: "24",
+            15: "22-",
+            16: "22+",
+            17: "23",
             18: "24",
             19: "25",
             20: "26",
@@ -50,6 +47,38 @@ class AnalysisLayout:
             30: "36",
         }
 
+        self.boulder_grades = {
+            1: "VB",
+            2: "VB",
+            3: "VB",
+            4: "VB",
+            5: "VB",
+            6: "VB",
+            7: "VB",
+            8: "VB",
+            9: "VB",
+            10: "VB",
+            11: "V0-",
+            12: "V0",
+            13: "V0+",
+            14: "V1",
+            15: "V2-",
+            16: "V2+",
+            17: "V3",
+            18: "V4",
+            19: "V5",
+            20: "V6",
+            21: "V7-",
+            22: "V8-",
+            23: "V8",
+            24: "V9",
+            25: "V10",
+            26: "V11",
+            27: "V12",
+            28: "V13-",
+            29: "V13+",
+            30: "V14-",
+        }
         french_grades = {
             1: "1",
             2: "2",
@@ -83,11 +112,16 @@ class AnalysisLayout:
             30: "9a+",
         }
 
-        prediction_intro_text = (
-            "<strong>Predicted redpoint grades:</strong><br><ul>"
+        prediction_title_text = (
+            "Predicted redpoint grades:"
         )
-        prediction_intro_text += "<li>If one predictor is far below the others, you might improve by focusing training here</li>"
-        prediction_intro_text += "<li>If predictions are far below your real redpoint level, you might improve by focusing on technique and mental traning</li></ul>"
+        prediction_title = Div(
+            text=prediction_title_text,
+            sizing_mode="stretch_width",
+            styles=Styles.heading,
+        )
+        prediction_intro_text = "<ul><li>If one predictor is far below the others, you might improve by focusing training here</li>"
+        prediction_intro_text += "<li>If predictions are far below your real redpoint level, you might improve by focusing on technique and mental training</li></ul>"
 
         prediction_results = "<ul><li>Max strength: 0 - 0</li>"
         prediction_results += "<li>Endurance: 0 - 0</li>"
@@ -98,32 +132,17 @@ class AnalysisLayout:
         prediction_intro = Div(
             text=prediction_intro_text,
             sizing_mode="stretch_width",
-            styles={
-                "font-size": "150%",
-                "color": "black",
-                "text-align": "left",
-                "width": "100%",
-            },
+            styles=Styles.normal,
         )
         self._prediction_results = Div(
             text=prediction_results,
             sizing_mode="stretch_width",
-            styles={
-                "font-size": "150%",
-                "color": "black",
-                "text-align": "left",
-                "width": "100%",
-            },
+            styles=Styles.normal,
         )
         results_title = Div(
-            text="<strong>Results:</strong>",
+            text="Results:",
             sizing_mode="stretch_width",
-            styles={
-                "font-size": "150%",
-                "color": "black",
-                "text-align": "left",
-                "width": "100%",
-            },
+            styles=Styles.heading,
         )
 
         results_text = "<ul>\
@@ -138,17 +157,13 @@ class AnalysisLayout:
         self._results = Div(
             text=results_text,
             sizing_mode="stretch_width",
-            styles={
-                "font-size": "150%",
-                "color": "black",
-                "text-align": "left",
-                "width": "100%",
-            },
+            styles=Styles.normal,
         )
         self.column = Column(
             title,
             results_title,
             self._results,
+            prediction_title,
             prediction_intro,
             self._prediction_results,
         )
@@ -161,20 +176,20 @@ class AnalysisLayout:
     def results(self, results):
         self._results.text = "<ul>\
         <li>Body Weight: {:d}kg</li>\
-        <li>Max strength left: {:.2f}% BW</li>\
-        <li>Max strength right: {:.2f}% BW</li>\
-        <li>Peak force: {:.2f}% BW</li>\
-        <li>Critical force: {:.2f}% BW</li>\
-        <li>Critical force: {:.2f}% of peak force</li>\
-        <li>RFD left: {:.2f}% kg/s</li>\
-        <li>RFD right: {:.2f}% kg/s</li></ul>\
+        <li>Max strength left: {:.1f}% BW</li>\
+        <li>Max strength right: {:.1f}% BW</li>\
+        <li>Peak force: {:.1f}% BW</li>\
+        <li>Critical force: {:.1f}% BW</li>\
+        <li>Critical force: {:.1f}% of peak force</li>\
+        <li>RFD left: {:.1f}% kg/s</li>\
+        <li>RFD right: {:.1f}% kg/s</li></ul>\
         ".format(
             TestResults.body_weight,
             (TestResults.max_left / TestResults.body_weight) * 100,
             (TestResults.max_right / TestResults.body_weight) * 100,
             (TestResults.peak_load / TestResults.body_weight) * 100,
             (TestResults.critical_load / TestResults.body_weight) * 100,
-            TestResults.critical_load_percent,
+            TestResults.critical_load / TestResults.peak_load,
             TestResults.rfd_left,
             TestResults.rfd_right,
         )

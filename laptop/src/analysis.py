@@ -3,7 +3,6 @@ from enum import Enum
 
 from src.test import TestResults
 
-
 def get_rfd(x, y):
     ymax = np.max(x)
     f80 = ymax * 0.8
@@ -142,39 +141,37 @@ def measure_mean_loads(t, f, trigger_level=3):
 def analyse_data(x, y, load_time, rest_time, interactive=False):
     t = np.array(x)
     f = np.array(y)
-    tmeans, durations, _, fmeans, e_fmeans = measure_mean_loads(t, f)
-    factor = load_time / (load_time + rest_time)
-    load_asymptote = np.nanmean(fmeans[-5:-1])
-    e_load_asymptote = np.nanstd(fmeans[-5:-1]) / np.sum(np.isfinite(fmeans[-5:-1]))
+    tmeans, durations, fmeans, _, std_fmeans = measure_mean_loads(t, f)
+    msg = ""
+    critical_load = 0
+    std_critical_load = 0
+    load_asymptote = 0
+    std_load_asymptote = 0
+    wprime_alt = 0
+    predicted_force = 0
+    if np.any(fmeans):
+        factor = load_time / (load_time + rest_time)
+        load_asymptote = np.nanmean(fmeans[-5:-1])
+        std_load_asymptote = np.nanstd(fmeans[-5:-1]) / np.sum(np.isfinite(fmeans[-5:-1]))
 
-    critical_load = load_asymptote * factor
-    e_critical_load = critical_load * (e_load_asymptote / load_asymptote)
+        TestResults.peak_load = np.max(fmeans)
+        critical_load = load_asymptote * factor
+        std_critical_load = critical_load * (std_load_asymptote / load_asymptote)
 
-    used_in_each_interval = (fmeans - critical_load) * durations - critical_load * (
-        load_time + rest_time - durations
-    )
-    wprime_alt = np.sum(used_in_each_interval)
-    remaining = wprime_alt - np.cumsum(used_in_each_interval)
-    print("Analyse Data ", used_in_each_interval, wprime_alt, remaining)
+        used_in_each_interval = (fmeans - critical_load) * durations - critical_load * (
+            load_time + rest_time - durations
+        )
+        wprime_alt = np.sum(used_in_each_interval)
+        remaining = wprime_alt - np.cumsum(used_in_each_interval)
 
-    # force constant
-    alpha = np.median((fmeans - load_asymptote) / remaining)
+        # force constant
+        alpha = np.median((fmeans - load_asymptote) / remaining)
 
-    msg = "<p>peak load = {:.2f} +/- {:.2f} kg</p>".format(fmeans[0], e_fmeans[0])
-    msg += "<p>critical load = {:.2f} +/- {:.2f} kg</p>".format(
-        critical_load, e_critical_load
-    )
-    msg += "<p>asymptotic load = {:.2f} +/- {:.2f} kg</p>".format(
-        load_asymptote, e_load_asymptote
-    )
-    msg += "<p>W' = {:.0f} J</p>".format(9.8 * wprime_alt)
-    msg += "<p>Anaerobic function score = {:.1f}</p>".format(wprime_alt / critical_load)
+        predicted_force = load_asymptote + alpha * remaining
 
-    predicted_force = load_asymptote + alpha * remaining
+        TestResults.critical_load = critical_load
 
-    TestResults.critical_load = critical_load
-
-    return tmeans, fmeans, e_fmeans, msg, critical_load, load_asymptote, predicted_force
+    return tmeans, fmeans, std_fmeans, critical_load, std_critical_load, load_asymptote, std_load_asymptote, wprime_alt, predicted_force
 
 
 def analyse_cft(self):
@@ -214,13 +211,13 @@ def analyse_cft(self):
     self.cf_x = x
     self.cf_y = y
 
-    msg = "<p>Peak force = {:.2f} +/- {:.2f} kg</p>".format(
+    msg = "<p>Peak load = {:.2f} +/- {:.2f} kg</p>".format(
         fmeans[imax], std_fmeans[imax]
     )
-    msg += "<p>Critical force = {:.2f} +/- {:.2f} kg</p>".format(
+    msg += "<p>Critical load = {:.2f} +/- {:.2f} kg</p>".format(
         self.cf_critical_load, std_load_asymptote
     )
-    msg += "<p>Critical force = {:.2f} % of peak force</p>".format(
+    msg += "<p>Critical load = {:.2f} % of peak force</p>".format(
         100 * self.cf_critical_load / fmeans[imax]
     )
     self.results_div.text = msg
