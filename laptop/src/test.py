@@ -89,9 +89,12 @@ async def start_test(parent, layout, test, test_status):
         '''
         A bit of a delay in case load is applied early
         '''
-        await asyncio.sleep(test.countdown_duration-0.5)
+        print("Start Sleep")
+        await asyncio.sleep(test.countdown_duration-1)
         await parent.tindeq.start_logging_weight()
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(1)
+        print("End Sleep")
+
 
         print(test_status.name, " Test starts!")
         test.end(layout, test, test_status)
@@ -99,10 +102,27 @@ async def start_test(parent, layout, test, test_status):
         print(test_status.name, " duration ", total_duration)
         await asyncio.sleep(total_duration)
         await parent.tindeq.stop_logging_weight()
-
+        print(test_status.name, " Test Ends!")
         test_status.complete = True
 
         await asyncio.sleep(0.5)
         test.state = TimerState.IdleState
     except Exception as err:
         print(str(err))
+
+        # test.end(layout, test, test_status)
+        # print("Start Logging")
+        # await parent.tindeq.start_logging_weight()
+        # '''
+        # A bit of a delay in case load is applied early
+        # '''
+        # await asyncio.sleep(test.countdown_duration-0.5)
+        # print(test_status.name, " Test starts!")
+        # test_status.active = True
+        # test.end(layout, test, test_status)
+
+        # print(test_status.name, " duration ", total_duration)
+        # await asyncio.sleep(total_duration)
+        # # await asyncio.sleep(0.5)
+        # await parent.tindeq.stop_logging_weight()
+        # test_status.complete = True

@@ -13,7 +13,7 @@ class CftLayout(Layout):
         duration = total_reps * 10
         Layout.__init__(self, title, duration)
 
-        self._btn_start = Button(label="Waiting for Progressor...")
+        self._btn_start = Button(label="Start Test", styles=Styles.button)
         self._btn_start.button_type = "danger"
         self._btn_start.disabled = True
 
@@ -29,7 +29,7 @@ class CftLayout(Layout):
         )
         self.results_text = (0, [0.0], [0.0], 0, 0, 0, 0, 0, 0)
 
-        self._results = Div(    
+        self._results = Div(
             text=self.results_text,
             sizing_mode="stretch_width",
             styles=Styles.normal,
@@ -42,8 +42,12 @@ class CftLayout(Layout):
             _results_title,
             self._results,
         )
-        self.row = Row(self.widgets, self._fig_column)
-        self.column = Column(self.title, self.row)
+        row = Row(self.widgets, self._fig_column)
+        self.column = Column(
+            self.title,
+            row,
+            margin=Styles.div_margin,
+        )
 
     @property
     def btn(self):

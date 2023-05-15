@@ -11,9 +11,9 @@ class AnalysisLayout:
             text="Testing Analysis",
             styles=Styles.title,
         )
-        '''
+        """
         Grading is based on the IRCRA scale
-        '''
+        """
         self.grades = {
             1: "4",
             2: "6",
@@ -112,9 +112,7 @@ class AnalysisLayout:
             30: "9a+",
         }
 
-        prediction_title_text = (
-            "Predicted redpoint grades:"
-        )
+        prediction_title_text = "Predicted redpoint grades:"
         prediction_title = Div(
             text=prediction_title_text,
             sizing_mode="stretch_width",
@@ -146,13 +144,13 @@ class AnalysisLayout:
         )
 
         results_text = "<ul>\
-        <li>Max strength left: 0.00% BW</li>\
-        <li>Max strength right: 0.00% BW</li>\
-        <li>Peak force: 0.00% BW</li>\
-        <li>Critical force: 0.00% BW</li>\
-        <li>Critical force: 0.00 of peak force</li>\
-        <li>RFD left: 0.00% kg/s</li>\
-        <li>RFD right: 0.00% kg/s</li></ul>"
+        <li>Max strength left: 0.0% BW</li>\
+        <li>Max strength right: 0.0% BW</li>\
+        <li>Peak force: 0.0% BW</li>\
+        <li>Critical force: 0.0% BW</li>\
+        <li>Critical force: 0.0 of peak force</li>\
+        <li>RFD left: 0.0% kg/s</li>\
+        <li>RFD right: 0.0% kg/s</li></ul>"
 
         self._results = Div(
             text=results_text,
@@ -166,6 +164,7 @@ class AnalysisLayout:
             prediction_title,
             prediction_intro,
             self._prediction_results,
+            margin=Styles.div_margin,
         )
 
     @property

@@ -3,18 +3,66 @@ from enum import Enum
 
 from src.test import TestResults
 
-def get_rfd(x, y):
-    ymax = np.max(x)
-    f80 = ymax * 0.8
-    f20 = ymax * 0.2
-    ix = np.where(y > f80)[0]
-    t80 = x[ix[0]]
-    ix = np.where(y > f20)[0]
-    t20 = x[ix[0]]
-    f = f80 - f20
-    t = t80 - t20
-    return f, t, t20, t80, f20, f80
+def analyse_rfd(x, y):
+    x_rfd = np.array(x, dtype=float)
+    y_rfd = np.array(y, dtype=float)
+    ymax = np.max(y_rfd)
+    '''
+    If load was applied too early skip
+    '''
+    if y_rfd[0] < 1:
+        '''
+        Calculate Average Rfd
+        '''
+        'Get the mean peak'
+        tmeans, _, fmeans, _, _ = measure_mean_loads(x_rfd, y_rfd)
 
+        f80 = ymax * 0.8
+        f20 = ymax * 0.2
+        f10 = ymax * 0.1
+        ix= np.where( y_rfd>f80 )[0]                
+        t80 = x_rfd[ix[0]]
+        ix= np.where( y_rfd>f20)[0]                
+        t20 = x_rfd[ix[0]]  
+        ix= np.where( y_rfd>f10)[0]                
+        t10 = x_rfd[ix[0]]  
+        f=(f80-f20)
+        t= t80-t20
+        rfd_average = np.round(f/t, 1)
+        
+        '''
+        Calculate Peak RFD
+        '''
+        force_diff = np.diff(y)
+        np.savetxt("diff.txt", force_diff)
+        rfd_max_index = np.argmax(force_diff)
+        rfd_max_x1 = x_rfd[rfd_max_index]
+        rfd_max_y1 = y_rfd[rfd_max_index]
+        rfd_max_x2 = x_rfd[rfd_max_index+1]
+        rfd_max_y2 = y_rfd[rfd_max_index+1]
+        # print("x1, x2, y1, y2", rfd_max_x1, rfd_max_x2, rfd_max_y1, rfd_max_y2) 
+        rfd_max = (rfd_max_y2 - rfd_max_y1)/(rfd_max_x2 - rfd_max_x1)
+        b = rfd_max_y1 - rfd_max * rfd_max_x1
+        # print(ymax, rfd_max, rfd_max_index)
+        rfd_max_t10 = (f10 - b) / rfd_max
+        rfd_max_t20 = (f20 - b) / rfd_max
+        rfd_max_t80 = (f80 - b) / rfd_max
+        
+        '''
+        Calculate time to Peak RFD
+        Assumes a starting threshold of 500g    
+        '''
+        start_threshold = 0.1
+        start_time_index = np.where(y_rfd>start_threshold)[0]
+        print("start_time_index", start_time_index[0])
+        start_time = y_rfd[start_time_index[0]]
+        'Convert to milli seconds'
+        time_to_peak_rfd = int((rfd_max_x1 - start_time) * 1000)
+
+        print("rfd time:", time_to_peak_rfd)
+        return rfd_max, rfd_max_x1, rfd_max_y1, rfd_max_t10, rfd_max_t80, f10, f80, rfd_average, tmeans[0], fmeans[0], time_to_peak_rfd
+    else:
+        return 0, 0, 0, 0, 0, 0, 0, 0, 0
 
 def max_strength(body_weight, max_left, max_right):
     maxx = np.array([max_right, max_left])
@@ -137,12 +185,18 @@ def measure_mean_loads(t, f, trigger_level=3):
         np.array(errs),
     )
 
+def analyse_max(x,y):
+    x_max = np.array(x, dtype=float)
+    y_max = np.array(y, dtype=float)
+    max_index = np.argmax(
+        np.array(y, dtype=float)
+    )
+    return x_max[max_index], y_max[max_index]
 
 def analyse_data(x, y, load_time, rest_time, interactive=False):
     t = np.array(x)
     f = np.array(y)
     tmeans, durations, fmeans, _, std_fmeans = measure_mean_loads(t, f)
-    msg = ""
     critical_load = 0
     std_critical_load = 0
     load_asymptote = 0

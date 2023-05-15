@@ -1,9 +1,10 @@
 from src.tindeq import TindeqProgressor
-from src.analysis import analyse_data, get_rfd, test_results
+from src.analysis import analyse_max, analyse_data, analyse_rfd, test_results
 from src.timers import CountdownTimer, TimerState
 
 from src.layouts.cft_layout import CftLayout
-from src.layouts.test_layout import TestLayout
+from src.layouts.max_layout import MaxLayout
+from src.layouts.rfd_layout import RfdLayout
 from src.layouts.user_layout import UserLayout
 from src.layouts.analysis_layout import AnalysisLayout
 
@@ -19,7 +20,7 @@ from bokeh.server.server import Server
 from bokeh.application import Application
 from bokeh.application.handlers.function import FunctionHandler
 from bokeh.plotting import ColumnDataSource
-from bokeh.layouts import row, Column
+from bokeh.layouts import Column
 
 
 class TindeqTests:
@@ -46,11 +47,12 @@ class TindeqTests:
         io_loop.add_callback(connect, self)
 
     def log_force_sample(self, time, weight):
-        if Test.testing_active:
-            self.xnew.append(time)
-            self.ynew.append(weight)
-            self.x.append(time)
-            self.y.append(weight)
+        # if Test.testing_active:
+        # print("Time: {:.5f} Weight: {:.2f}".format(time, weight) )
+        self.xnew.append(time)
+        self.ynew.append(weight)
+        self.x.append(time)
+        self.y.append(weight)
 
     def reset(self):
         self.xnew, self.ynew = [], []
@@ -89,8 +91,7 @@ class TindeqTests:
 
         def cft_onclick():
             Test.TestingStarted = True
-            Test.Cft.active = True
-            
+
             io_loop = tornado.ioloop.IOLoop.current()
             io_loop.add_callback(
                 start_test, self, self.cft_layout, self.timer_cft, Test.Cft
@@ -104,7 +105,7 @@ class TindeqTests:
         """
         Rate of Force Development Testing
         """
-        self.rfd_layout = TestLayout(
+        self.rfd_layout = RfdLayout(
             self.rfd_go_duration, Test.RfdLeft, self.rfd_source_l, self.rfd_source_r
         )
         self.timer_rfd = CountdownTimer(
@@ -115,7 +116,6 @@ class TindeqTests:
 
         def rfd_onclick_left():
             Test.TestingStarted = True
-            Test.RfdLeft.active = True
             Test.RfdLeft.complete = False
 
             self.rfd_source_l.data = dict(x=[], y=[])
@@ -127,7 +127,6 @@ class TindeqTests:
 
         def rfd_onclick_right():
             Test.TestingStarted = True
-            Test.RfdRight.active = True
             Test.RfdRight.complete = False
 
             self.rfd_source_r.data = dict(x=[], y=[])
@@ -147,7 +146,7 @@ class TindeqTests:
         """
         Max Strength Testing
         """
-        self.max_layout = TestLayout(
+        self.max_layout = MaxLayout(
             self.max_go_duration, Test.MaxLeft, self.max_source_l, self.max_source_r
         )
         self.timer_max = CountdownTimer(
@@ -158,9 +157,6 @@ class TindeqTests:
 
         def max_onclick_left():
             Test.TestingStarted = True
-            Test.MaxLeft.active = True
-
-            # self.analysis_layout.results = (3.0,4.0,5.0,6.0,7.0,8.0)
 
             self.max_source_l.data = dict(x=[], y=[])
 
@@ -171,7 +167,6 @@ class TindeqTests:
 
         def max_onclick_right():
             Test.TestingStarted = True
-            Test.MaxRight.active = True
 
             self.max_source_r.data = dict(x=[], y=[])
 
@@ -195,7 +190,7 @@ class TindeqTests:
         doc.add_root(
             Column(user_column, max_column, rfd_column, cft_column, analysis_column)
         )
-        doc.add_periodic_callback(self.update, 50)
+        doc.add_periodic_callback(self.update, 20)
 
     def update(self):
         """
@@ -207,23 +202,23 @@ class TindeqTests:
         """
         if not Test.TestingStarted:
             if self.tindeq is not None:
-                self.cft_btn.label = "Start CFT Test"
+                self.cft_btn.label = "Start Test"
                 self.cft_btn.button_type = "success"
                 self.cft_btn.disabled = False
 
-                self.max_btn_left.label = "Start Max Test - Left"
+                self.max_btn_left.label = "Start Test"
                 self.max_btn_left.button_type = "success"
                 self.max_btn_left.disabled = False
 
-                self.max_btn_right.label = "Start Max Test - Right"
+                self.max_btn_right.label = "Start Test"
                 self.max_btn_right.button_type = "success"
                 self.max_btn_right.disabled = False
 
-                self.rfd_btn_left.label = "Start RFD Test - Left"
+                self.rfd_btn_left.label = "Start Test"
                 self.rfd_btn_left.button_type = "success"
                 self.rfd_btn_left.disabled = False
 
-                self.rfd_btn_right.label = "Start RFD Test - Right"
+                self.rfd_btn_right.label = "Start Test"
                 self.rfd_btn_right.button_type = "success"
                 self.rfd_btn_right.disabled = False
 
@@ -237,7 +232,6 @@ class TindeqTests:
                     np.savetxt("test.txt", np.column_stack((self.x, self.y)))
 
                     results = analyse_data(self.x, self.y, 7, 3)
-                    # self.cft_layout.results_text = results
                     self.cft_layout.update_results(results)
 
                 else:
@@ -254,18 +248,11 @@ class TindeqTests:
                     self.max_btn_left.button_type = "warning"
                     Test.MaxLeft.active = False
 
-                    x_max = np.array(self.max_source_l.data["x"], dtype=float)
-                    y_max = np.array(self.max_source_l.data["y"], dtype=float)
-                    max_index = np.argmax(
-                        np.array(self.max_source_l.data["y"], dtype=float)
+                    results = analyse_max(
+                        self.max_source_l.data["x"], self.max_source_l.data["y"]
                     )
-                    self.max_fig.circle(
-                        x_max[max_index],
-                        y_max[max_index],
-                        color="red",
-                        size=5,
-                        line_alpha=0,
-                    )
+                    self.max_layout.update_results(results)
+
                 else:
                     self.timer_max.update(
                         self, self.timer_max, self.max_layout, Test.MaxLeft
@@ -273,10 +260,10 @@ class TindeqTests:
                     self.max_source_l.stream({"x": self.xnew, "y": self.ynew})
 
                     if len(self.max_source_l.data["y"]) > 1:
-                        max_left = np.round(
-                            np.max(np.array(self.max_source_l.data["y"], dtype=float)),
-                            2,
+                        _, max_left = analyse_max(
+                            self.max_source_l.data["x"], self.max_source_l.data["y"]
                         )
+
                         self.max_layout.div_lh = max_left
                         TestResults.max_left = max_left
 
@@ -286,18 +273,11 @@ class TindeqTests:
                     self.max_btn_right.button_type = "warning"
                     Test.MaxRight.active = False
 
-                    x_max = np.array(self.max_source_r.data["x"], dtype=float)
-                    y_max = np.array(self.max_source_r.data["y"], dtype=float)
-                    max_index = np.argmax(
-                        np.array(self.max_source_r.data["y"], dtype=float)
+                    results = analyse_max(
+                        self.max_source_r.data["x"], self.max_source_r.data["y"]
                     )
-                    self.max_fig.circle(
-                        x_max[max_index],
-                        y_max[max_index],
-                        color="red",
-                        size=5,
-                        line_alpha=0,
-                    )
+                    self.max_layout.update_results(results)
+
                 else:
                     self.timer_max.update(
                         self, self.timer_max, self.max_layout, Test.MaxRight
@@ -305,36 +285,54 @@ class TindeqTests:
                     self.max_source_r.stream({"x": self.xnew, "y": self.ynew})
 
                     if len(self.max_source_r.data["y"]) > 1:
-                        max_right = np.round(
-                            np.max(np.array(self.max_source_r.data["y"], dtype=float)),
-                            2,
+                        _, max_right = analyse_max(
+                            self.max_source_r.data["x"], self.max_source_r.data["y"]
                         )
+
                         self.max_layout.div_rh = max_right
                         TestResults.max_right = max_right
 
             elif Test.RfdLeft.active:
                 if Test.RfdLeft.complete:
-                    self.rfd_btn_left.label = "Rfd Test - Left - Complete"
+                    self.rfd_btn_left.label = "RFD Test Complete"
                     self.rfd_btn_left.button_type = "warning"
                     Test.RfdLeft.active = False
 
-                    x = np.array(self.rfd_source_l.data["x"], dtype=float)
-                    y = np.array(self.rfd_source_l.data["y"], dtype=float)
-                    rfd_index = np.argmax(
-                        np.array(self.rfd_source_l.data["y"], dtype=float)
+                    results = analyse_rfd(
+                        self.rfd_source_l.data["x"], self.rfd_source_l.data["y"]
                     )
-                    self.rfd_fig.circle(
-                        x[rfd_index], y[rfd_index], color="red", size=5, line_alpha=0
-                    )
+                    self.rfd_layout.update_results(results)
 
-                    (f, t, t20, t80, f20, f80) = get_rfd(x, y)
+                    (
+                        fmax,
+                        _,
+                        _,
+                        _,
+                        _,
+                        _,
+                        _,
+                        rfd_average,
+                        _,
+                        _,
+                        time_to_peak_rfd,
+                    ) = results
+                    # (fmax, rfd_max_x1, rfd_max_y1, rfd_max_t20, rfd_max_t80, f20, f80, rfd_average, tmeans, fmeans, time_to_peak_rfd) = analyse_rfd(x, y)
+                    """
+                    Reset the test if the load was applied too early
+                    """
 
-                    TestResults.rfd_left = np.round(f / t, 2)
-
-                    self.rfd_layout.div_lh = TestResults.rfd_left
-                    self.rfd_fig.line(
-                        [t20, t80], [f20, f80], line_color="red", line_width=2
-                    )
+                    if fmax == 0:
+                        Test.RfdRLeft.complete = False
+                        self.rfd_btn_left.label = "Start RFD Test"
+                        self.rfd_btn_left.button_type = "success"
+                        self.reset()
+                    else:
+                        TestResults.rfd_left = np.round(fmax, 1)
+                        self.rfd_layout.div_lh = (
+                            TestResults.rfd_left,
+                            rfd_average,
+                            time_to_peak_rfd,
+                        )
 
                 else:
                     self.timer_rfd.update(
@@ -344,27 +342,46 @@ class TindeqTests:
 
             elif Test.RfdRight.active:
                 if Test.RfdRight.complete:
-                    self.rfd_btn_right.label = "Rfd Test - Right - Complete"
+                    self.rfd_btn_right.label = "RFD Test Complete"
                     self.rfd_btn_right.button_type = "warning"
                     Test.RfdRight.active = False
 
-                    x = np.array(self.rfd_source_r.data["x"], dtype=float)
-                    y = np.array(self.rfd_source_r.data["y"], dtype=float)
-                    rfd_index = np.argmax(
-                        np.array(self.rfd_source_r.data["y"], dtype=float)
+                    results = analyse_rfd(
+                        self.rfd_source_r.data["x"], self.rfd_source_r.data["y"]
                     )
-                    self.rfd_fig.circle(
-                        x[rfd_index], y[rfd_index], color="red", size=5, line_alpha=0
-                    )
+                    self.rfd_layout.update_results(results)
 
-                    (f, t, t20, t80, f20, f80) = get_rfd(x, y)
+                    (
+                        fmax,
+                        _,
+                        _,
+                        _,
+                        _,
+                        _,
+                        _,
+                        rfd_average,
+                        _,
+                        _,
+                        time_to_peak_rfd,
+                    ) = results
+                    # (fmax, rfd_max_x1, rfd_max_y1, rfd_max_t20, rfd_max_t80, f20, f80, rfd_average, tmeans, fmeans, time_to_peak_rfd) = analyse_rfd(x, y)
+                    """
+                    Reset the test if the load was applied too early
+                    """
 
-                    TestResults.rfd_right = np.round(f / t, 2)
+                    if fmax == 0:
+                        Test.RfdRight.complete = False
+                        self.rfd_btn_right.label = "Start RFD Test"
+                        self.rfd_btn_right.button_type = "success"
+                        self.reset()
+                    else:
+                        TestResults.rfd_right = np.round(fmax, 1)
+                        self.rfd_layout.div_rh = (
+                            TestResults.rfd_right,
+                            rfd_average,
+                            time_to_peak_rfd,
+                        )
 
-                    self.rfd_layout.div_rh = TestResults.rfd_right
-                    self.rfd_fig.line(
-                        [t20, t80], [f20, f80], line_color="red", line_width=2
-                    )
                 else:
                     self.timer_rfd.update(
                         self, self.timer_rfd, self.rfd_layout, Test.RfdRight
@@ -382,7 +399,8 @@ async def connect(cft):
     await tindeq.connect()
     cft.tindeq = tindeq
     await cft.tindeq.soft_tare()
-    await asyncio.sleep(5)
+    await asyncio.sleep(1)
+    cft.reset()
 
 
 tt = TindeqTests()

@@ -12,10 +12,9 @@ class TimerState(Enum):
 
 
 class CountdownTimer:
-    countdown_duration = 5
-
-    def __init__(self, reps, go_duration, rest_duration, layout):
+    def __init__(self, reps, go_duration, rest_duration, layout, countdown_duration=5):
         self.state = TimerState.IdleState
+        self._countdown_duration = countdown_duration
         self.go_duration = go_duration
         self.rest_duration = rest_duration
         self.idle_duration = 5
@@ -69,9 +68,7 @@ class CountdownTimer:
 
     @staticmethod
     def end(layout, self, test):
-        # print(self.state, layout.total_reps, self._reps, test.complete)
-        if test.complete:
-            pass
+        print(self.state, self._reps, test.complete)
 
         self.time = time.time()
 
@@ -87,11 +84,7 @@ class CountdownTimer:
             self.time = time.time()
             if self.rest_duration == 0:
                 self.state = TimerState.IdleState
-                test.complete = True
-
             else:
-                # if self._reps == 1:
-                #     test.complete = True
                 self.state = TimerState.RestState
 
         elif self.state == TimerState.RestState:
@@ -107,3 +100,11 @@ class CountdownTimer:
     @property
     def reps(self):
         return self._reps
+    
+    @property
+    def countdown_duration(self):
+        return self._countdown_duration
+    
+    @countdown_duration.setter
+    def countdown_duration(self, duration):
+        self._countdown_duration = duration

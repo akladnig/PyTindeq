@@ -154,6 +154,7 @@ class TindeqProgressor(object):
     async def start_logging_weight(self):
         self.last_cmd = None
         await self._send_cmd("START_WEIGHT_MEAS")
+        print("Logging Started")
 
     async def stop_logging_weight(self):
         self.last_cmd = None
