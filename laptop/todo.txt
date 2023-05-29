@@ -1,4 +1,2 @@
 save to database
 trend analysis
-test_layout - format numbers
-analysis results 

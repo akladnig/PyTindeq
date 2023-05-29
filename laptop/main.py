@@ -12,6 +12,9 @@ from src.test import start_test, Test, TestResults
 
 from src.playsounds import sound_thread
 
+from datetime import date
+import os
+
 import numpy as np
 import asyncio
 import tornado
@@ -31,7 +34,7 @@ class TindeqTests:
         self.ynew = []
         self.active = False
         # self.total_reps = 24
-        self.total_reps = 5
+        self.total_reps = 24
         self.cft_go_duration = 7
         self.cft_rest_duration = 3
         self.cft_duration = 10 * self.total_reps
@@ -68,10 +71,13 @@ class TindeqTests:
         """
         User Details Layout
         """
-        user_layout = UserLayout()
-        user_column = user_layout.column
+        self._user_layout = UserLayout()
+        user_column = self._user_layout.column
 
-        TestResults.body_weight = user_layout.weight
+        TestResults.body_weight = self._user_layout.weight
+        'Make the base path to store the data'
+        _cwd = os.getcwd()
+        self._path= os.path.join(_cwd, "laptop", "data")
 
         """
         Critical Force Testing Layout
@@ -229,7 +235,9 @@ class TindeqTests:
                     self.cft_btn.button_type = "warning"
                     Test.Cft.active = False
 
-                    np.savetxt("test.txt", np.column_stack((self.x, self.y)))
+                    _filename =  self._user_layout.name.replace(" ", "_") + self._user_layout.grip_type.replace(" ", "_") + "_CFT_" + date.today().strftime("%d-%m-%y") + ".txt"
+                    _full_fn = os.path.join(self._path, _filename)
+                    np.savetxt(_full_fn, np.column_stack((self.x, self.y)))
 
                     results = analyse_data(self.x, self.y, 7, 3)
                     self.cft_layout.update_results(results)
@@ -247,6 +255,10 @@ class TindeqTests:
                     self.max_btn_left.label = "Max Test - Left - Complete"
                     self.max_btn_left.button_type = "warning"
                     Test.MaxLeft.active = False
+
+                    _filename =  self._user_layout.name.replace(" ", "_") + self._user_layout.grip_type.replace(" ", "_") + "_MaxLeft_" + date.today().strftime("%d-%m-%y") + ".txt"
+                    _full_fn = os.path.join(self._path, _filename)
+                    np.savetxt(_full_fn, np.column_stack((self.x, self.y)))
 
                     results = analyse_max(
                         self.max_source_l.data["x"], self.max_source_l.data["y"]
@@ -273,6 +285,10 @@ class TindeqTests:
                     self.max_btn_right.button_type = "warning"
                     Test.MaxRight.active = False
 
+                    _filename =  self._user_layout.name.replace(" ", "_") + self._user_layout.grip_type.replace(" ", "_") + "_MaxRight_" + date.today().strftime("%d-%m-%y") + ".txt"
+                    _full_fn = os.path.join(self._path, _filename)
+                    np.savetxt(_full_fn, np.column_stack((self.x, self.y)))
+
                     results = analyse_max(
                         self.max_source_r.data["x"], self.max_source_r.data["y"]
                     )
@@ -298,6 +314,10 @@ class TindeqTests:
                     self.rfd_btn_left.button_type = "warning"
                     Test.RfdLeft.active = False
 
+                    _filename =  self._user_layout.name.replace(" ", "_") + self._user_layout.grip_type.replace(" ", "_") + "_RFDLeft_" + date.today().strftime("%d-%m-%y") + ".txt"
+                    _full_fn = os.path.join(self._path, _filename)
+                    np.savetxt(_full_fn, np.column_stack((self.x, self.y)))
+                               
                     results = analyse_rfd(
                         self.rfd_source_l.data["x"], self.rfd_source_l.data["y"]
                     )
@@ -314,7 +334,7 @@ class TindeqTests:
                         rfd_average,
                         _,
                         _,
-                        time_to_peak_rfd,
+                        time_to_peak_rfd
                     ) = results
                     # (fmax, rfd_max_x1, rfd_max_y1, rfd_max_t20, rfd_max_t80, f20, f80, rfd_average, tmeans, fmeans, time_to_peak_rfd) = analyse_rfd(x, y)
                     """
@@ -346,6 +366,10 @@ class TindeqTests:
                     self.rfd_btn_right.button_type = "warning"
                     Test.RfdRight.active = False
 
+                    _filename =  self._user_layout.name.replace(" ", "_") + "_" + self._user_layout.grip_type.replace(" ", "_") + "_RFDRight_" + date.today().strftime("%d-%m-%y") + ".txt"
+                    _full_fn = os.path.join(self._path, _filename)
+                    np.savetxt(_full_fn, np.column_stack((self.x, self.y)))
+                               
                     results = analyse_rfd(
                         self.rfd_source_r.data["x"], self.rfd_source_r.data["y"]
                     )
@@ -362,7 +386,7 @@ class TindeqTests:
                         rfd_average,
                         _,
                         _,
-                        time_to_peak_rfd,
+                        time_to_peak_rfd
                     ) = results
                     # (fmax, rfd_max_x1, rfd_max_y1, rfd_max_t20, rfd_max_t80, f20, f80, rfd_average, tmeans, fmeans, time_to_peak_rfd) = analyse_rfd(x, y)
                     """

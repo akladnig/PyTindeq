@@ -5,3 +5,11 @@ ios/tests
 test.txt
 laptop/tests
 laptopt/tests/*
+laptop/data/*
+laptop/src/__pycache__
+laptop/src/__pycache__/*
+laptop/src/layouts/__pycache__
+laptop/src/layouts/__pycache__/*
+laptop/src/templates/__pycache__
+laptop/src/templates/__pycache__/*
+.DS_Store

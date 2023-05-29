@@ -121,9 +121,9 @@ class AnalysisLayout:
         prediction_intro_text = "<ul><li>If one predictor is far below the others, you might improve by focusing training here</li>"
         prediction_intro_text += "<li>If predictions are far below your real redpoint level, you might improve by focusing on technique and mental training</li></ul>"
 
-        prediction_results = "<ul><li>Max strength: 0 - 0</li>"
-        prediction_results += "<li>Endurance: 0 - 0</li>"
-        prediction_results += "<li>Contact strength: 0 - 0</li></ul>"
+        prediction_results = "<ul><li>Max strength: 0 to 0</li>"
+        prediction_results += "<li>Endurance: 0 to 0</li>"
+        prediction_results += "<li>Contact strength: 0 to 0</li></ul>"
 
         # self.cf_percent=(critical_load/self.cf_peak_load)*100
 
@@ -207,9 +207,9 @@ class AnalysisLayout:
             contact_strength_min,
             contact_strength_max,
         ) = results
-        self._prediction_results.text = "<ul><li>Max strength: {} - {}</li>\
-        <li>Endurance: {} - {}</li>\
-        <li>Contact strength: {} - {}</li></ul>".format(
+        self._prediction_results.text = "<ul><li>Max strength: {} to {}</li>\
+        <li>Endurance: {} to {}</li>\
+        <li>Contact strength: {} to {}</li></ul>".format(
             self.grades[strength_min],
             self.grades[strength_max],
             self.grades[endurance_min],
