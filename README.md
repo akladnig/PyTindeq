@@ -1,6 +1,6 @@
 # Tindeq Progressor Strength Tester for macOS
 
-A python and bokeh application that creates a user interface to run climbing strength tests, that can store and visualise results.
+A python and bokeh application that creates a user interface to run climbing strength tests that can store and visualise results.
 
 This application is based on the following apps:
 
@@ -8,6 +8,8 @@ This application is based on the following apps:
 - https://github.com/sebastianmenze/Tindeq-Progressor-climbing-strength-test-server
 
  I needed to tweak Stuart's app to get it working but really wanted to implement some of the features of Sebastian's app. Unfortunately I couldn't get Sebastian's app to run, so I basically decided that it was time time to learn a bit of Python so I re-wrote the application using a mix of Stuart's and Sebastian's code.
+
+ Results are also saved as text files for later analysis in laptop/data
  
  This only works on macOS. 
  

@@ -13,3 +13,11 @@ laptop/src/layouts/__pycache__/*
 laptop/src/templates/__pycache__
 laptop/src/templates/__pycache__/*
 .DS_Store
+.DS_Store
+.obsidian/app.json
+.obsidian/appearance.json
+.obsidian/core-plugins-migration.json
+.obsidian/core-plugins.json
+.obsidian/hotkeys.json
+.obsidian/workspace.json
+laptop/.DS_Store
