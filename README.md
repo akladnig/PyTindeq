@@ -22,4 +22,4 @@ This application is based on the following apps:
 
 Also - needs to be run from the laptop directory.
   
-I am currently in the process of re-writing this in Flutter as I'm not a huge fan of whole Python, Numpy and Bokeh thing. 
+I am currently in the process of re-writing this in Flutter as I'm not a huge fan of the whole Python, Numpy and Bokeh thing. 
