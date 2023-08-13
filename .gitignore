@@ -13,7 +13,6 @@ laptop/src/layouts/__pycache__/*
 laptop/src/templates/__pycache__
 laptop/src/templates/__pycache__/*
 .DS_Store
-.DS_Store
 .obsidian/app.json
 .obsidian/appearance.json
 .obsidian/core-plugins-migration.json
@@ -21,3 +20,5 @@ laptop/src/templates/__pycache__/*
 .obsidian/hotkeys.json
 .obsidian/workspace.json
 laptop/.DS_Store
+diff.txt
+.vscode
