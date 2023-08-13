@@ -58,13 +58,13 @@ class CountdownTimer:
 
         if self.state == TimerState.CountDownState:
             if (remain <= 3.5) & (parent.st.running == False):
-                parent.st.start("laptop/static/countdown.mp3", 3.5)
+                parent.st.start("static/countdown.mp3", 3.5)
         elif self.state == TimerState.GoState:
             if (remain <= 1.1) & (remain > 0.5) & (parent.st.running == False):
-                parent.st.start("laptop/static/end.wav", 1.1)
+                parent.st.start("static/end.wav", 1.1)
         elif self.state == TimerState.RestState:
             if (remain <= 3.5) & (parent.st.running == False) & (self._reps > 1):
-                parent.st.start("laptop/static/countdown.mp3", 3.5)
+                parent.st.start("static/countdown.mp3", 3.5)
 
     @staticmethod
     def end(layout, self, test):

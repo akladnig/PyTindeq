@@ -77,7 +77,7 @@ class TindeqTests:
         TestResults.body_weight = self._user_layout.weight
         'Make the base path to store the data'
         _cwd = os.getcwd()
-        self._path= os.path.join(_cwd, "laptop", "data")
+        self._path= os.path.join(_cwd, "data")
 
         """
         Critical Force Testing Layout
